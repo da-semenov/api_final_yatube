@@ -2,6 +2,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from .models import Comment, Follow, Group, Post, User
 from .permissions import IsOwnerOrReadOnly
@@ -12,7 +13,7 @@ from .serializers import (
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['group']
 
@@ -20,10 +21,16 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
+class GroupViewSet(viewsets.ModelViewSet):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
@@ -37,6 +44,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class FollowList(ListCreateAPIView):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
     filter_backends = [filters.SearchFilter]
     search_fields = ['=user__username', '=following__username']
 
@@ -50,9 +58,3 @@ class FollowList(ListCreateAPIView):
             raise ValidationError('Вы уже подписаны на автора')
 
         serializer.save(user=self.request.user, following=following)
-
-
-class GroupViewSet(viewsets.ModelViewSet):
-    queryset = Group.objects.all()
-    serializer_class = GroupSerializer
-    permission_classes = [IsOwnerOrReadOnly]
