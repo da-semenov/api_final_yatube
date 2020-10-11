@@ -1,11 +1,12 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
+from rest_framework import filters, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, get_object_or_404
 
-from .models import Post, Comment, Follow, Group, User
+from .models import Comment, Follow, Group, Post, User
 from .permissions import IsOwnerOrReadOnly
-from .serializers import PostSerializer, CommentSerializer, FollowSerializer, GroupSerializer
+from .serializers import (
+    CommentSerializer, FollowSerializer, GroupSerializer, PostSerializer)
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -17,8 +18,8 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
-        
-    
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -38,7 +39,7 @@ class FollowList(ListCreateAPIView):
     serializer_class = FollowSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['=user__username', '=following__username']
-    
+
     def perform_create(self, serializer):
         try:
             following = User.objects.get(username=self.request.data.get('following'))
@@ -50,7 +51,7 @@ class FollowList(ListCreateAPIView):
 
         serializer.save(user=self.request.user, following=following)
 
- 
+
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
