@@ -38,12 +38,10 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,
-                             related_name='user')
+                             related_name='user',
+                             verbose_name='Подписчик')
     following = models.ForeignKey(User, on_delete=models.CASCADE,
-                                  related_name='following')
+                                  related_name='following',
+                                  verbose_name='Избранный автор')
 
-    class Meta:
-        unique_together = 'user', 'following'
 
-    def __str__(self):
-        return self.user

@@ -3,6 +3,7 @@ from rest_framework import filters, viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import ListCreateAPIView, get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.filters import SearchFilter
 
 from .models import Comment, Follow, Group, Post, User
 from .permissions import IsOwnerOrReadOnly
@@ -13,7 +14,7 @@ from .serializers import (
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['group']
 
@@ -24,13 +25,13 @@ class PostViewSet(viewsets.ModelViewSet):
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         post = get_object_or_404(Post, id=self.kwargs['post_id'])
@@ -41,20 +42,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         return Comment.objects.filter(post=post)
 
 
-class FollowList(ListCreateAPIView):
+class FollowViewSet(viewsets.ModelViewSet):
     queryset = Follow.objects.all()
     serializer_class = FollowSerializer
-    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly,]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['=user__username', '=following__username']
+    permission_classes = [IsOwnerOrReadOnly, IsAuthenticatedOrReadOnly]
+    filter_backends = (SearchFilter,)
+    search_fields = ('=user__username', '=following__username')
 
     def perform_create(self, serializer):
-        try:
-            following = User.objects.get(username=self.request.data.get('following'))
-        except User.DoesNotExist:
-            raise ValidationError('Юзер не найден.')
-
-        if Follow.objects.filter(user=self.request.user, following=following).exists():
-            raise ValidationError('Вы уже подписаны на автора')
-
-        serializer.save(user=self.request.user, following=following)
+        serializer.save(user=self.request.user)
