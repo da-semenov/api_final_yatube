@@ -1,11 +1,10 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
-from rest_framework.exceptions import ValidationError
-from rest_framework.generics import ListCreateAPIView, get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from .models import Comment, Follow, Group, Post, User
+from .models import Comment, Follow, Group, Post
 from .permissions import IsOwnerOrReadOnly
 from .serializers import (
     CommentSerializer, FollowSerializer, GroupSerializer, PostSerializer)
